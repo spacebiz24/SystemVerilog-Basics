@@ -37,6 +37,11 @@ interface JK_FlipFlop_Interface(input clk);
         $stop;
     endtask
 
+    task successMessage;
+        input string message;
+        $display("%s working\n", message);
+    endtask
+
     task testReset;
         cb.rst <= 1;
         cb.Sel <= $random;
@@ -48,6 +53,8 @@ interface JK_FlipFlop_Interface(input clk);
             $display("Reset Not Working\n");
             $stop;
         end
+        else
+            successMessage("Reset");
     endtask
 
     task test0_JK;
@@ -55,12 +62,14 @@ interface JK_FlipFlop_Interface(input clk);
         parameter Type = 0;
         cb.J[Type] <= J0;
         cb.K[Type] <= K0;
+        cb.Sel <= Type;
         repeat(2) @ (cb);
         case({J0, K0})
             00: if(cb.Q != cb.Q) errorMessage(0, Type);
             01: if(cb.Q != 0) errorMessage(1, Type);
             10: if(cb.Q != 1) errorMessage(2, Type);
             11: if(cb.Q == cb.Q) errorMessage(3, Type);
+            default: successMessage("Load 0");
         endcase
     endtask
     
@@ -69,12 +78,14 @@ interface JK_FlipFlop_Interface(input clk);
         parameter Type = 1;
         cb.J[Type] <= J1;
         cb.K[Type] <= K1;
+        cb.Sel <= Type;
         repeat(2) @ (cb);
         case({J1, K1})
             00: if(cb.Q != cb.Q) errorMessage(0, Type);
             01: if(cb.Q != 0) errorMessage(1, Type);
             10: if(cb.Q != 1) errorMessage(2, Type);
             11: if(cb.Q == cb.Q) errorMessage(3, Type);
+            default: successMessage("Load 1");
         endcase
     endtask
     modport Test_IF (clocking cb, task testReset(), task test0_JK(), task test1_JK());
