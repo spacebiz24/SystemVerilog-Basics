@@ -1,96 +1,92 @@
-interface JK_TB(clk);
+interface JK_TB (clk);
     input clk;
-    logic J, K;
-    logic rst, Q;
-    
+    logic J, K, rst;
+    logic Q;
+
     modport JKFF_ports(input J, K, rst, clk, output Q);
-    
-    
-    parameter tsetup = 4, thold = 2;
-    
+
+
+    parameter tsetup = 2, thold = 3;
     clocking TBForce @(posedge clk);
         default input #(tsetup) output #(thold);
-        input Q;
         output J, K, rst;
-    endclocking
-    
+        input Q;
+    endclocking: TBForce
+
     task TestRst;
         TBForce.rst <= 1;
-        
-        repeat (2) @ (TBForce); // Delay of 2 clock cycles
-        if (TBForce.Q)
-        begin
-            $display("Reset is not Working\n");
-            $stop;
-        end
-        else
-            $display("Reset is working\n");
-        
-        TBForce.rst <= 0;
-    endtask
-    
+        repeat (2) @(TBForce);
+            if (TBForce.Q)
+            begin
+                $display("Reset is not working");
+                $stop;
+            end
+            else
+                $display("Reset is working");
+        TBForce.rst <= 0; 
+    endtask: TestRst
+
     task TestValues;
         input J, K;
+        reg PrevQ = TBForce.Q;
         TBForce.J <= J;
         TBForce.K <= K;
-        repeat(2) @(TBForce);
+        repeat (2) @(TBForce);
         case ({J,K})
-            2'd0: if(TBForce.Q != TBForce.Q) Message(J, K, 1); else Message(J, K, 0);
-            2'd1: if(TBForce.Q != 0) Message(J, K, 1); else Message(J, K, 0);
-            2'd2: if(TBForce.Q != 1) Message(J, K, 1); else Message(J, K, 0);
-            2'd3: if(TBForce.Q == TBForce.Q) Message(J, K, 1); else Message(J, K, 0);
+            2'd0: if (TBForce.Q != PrevQ) Message(J, K, 1); else Message(J, K, 0);
+            2'd1: if (TBForce.Q != 0) Message(J, K, 1); else Message(J, K, 0);
+            2'd2: if (TBForce.Q != 1) Message(J, K, 1); else Message(J, K, 0);
+            2'd3: if (TBForce.Q == PrevQ) Message(J, K, 1); else Message(J, K, 0);
         endcase
-    endtask
-    
+    endtask: TestValues
+
     task Message;
-        input j,k;
+        input J, K;
         input errcode;
-        if (errcode)
+        $write("J = %b, K = %b is ", J, K);
+        if(errcode)
         begin
-            $display("J = %d, K = %d is Not working\n", j, k);
+            $display("Not working");
         end
         else
-            $display("J = %d, K = %d is working\n", j, k);
-    endtask
+            $display("Working");
+    endtask: Message
 
-modport TB_ports(clocking TBForce, task TestRst, task TestValues);
-endinterface
+    modport TB_ports(clocking TBForce, task TestRst, task TestValues);
+endinterface: JK_TB
 
 module JKFF(JK_TB.JKFF_ports JK_IF);
-    logic J,K;
-    always @*
-    begin
-        J = JK_IF.J;
-        K = JK_IF.K;
-    end
-    always_ff @(JK_IF.clk)
+    logic J, K;
+    assign {J,K} = {JK_IF.J, JK_IF.K};
+    always_ff @(posedge JK_IF.clk)
     begin
         if (JK_IF.rst)
             JK_IF.Q <= 0;
         else
-            case ({J,K})
-                00: JK_IF.Q <= JK_IF.Q;
-                01: JK_IF.Q <= 'b0;
-                10: JK_IF.Q <= 'b1;
-                11: JK_IF.Q <= ~JK_IF.Q;
+            case({J,K})
+                2'd0: JK_IF.Q <= JK_IF.Q;
+                2'd1: JK_IF.Q <= 1'b0;
+                2'd2: JK_IF.Q <= 1'b1;
+                2'd3: JK_IF.Q <= ~JK_IF.Q;
             endcase
     end
-endmodule
+endmodule: JKFF
 
 module JKTestCases(JK_TB.TB_ports TB_IF);
-int j,k;
-initial
+    initial 
     begin
         @(TB_IF.TBForce);
         TB_IF.TestRst;
-        TB_IF.TestValues(1,0);
+        for (int J=0; J<2; J++)
+            for (int K=0; K<2; K++)
+                TB_IF.TestValues(J, K);
     end
-endmodule
+endmodule: JKTestCases
 
 module Top();
     bit clk;
     always #10 clk = ~clk;
-    JK_TB bus(clk);
+    JK_TB  bus (clk);
     JKFF DUV (bus);
-    JKTestCases TB(bus);
-endmodule
+    JKTestCases TB (bus);
+endmodule: Top
