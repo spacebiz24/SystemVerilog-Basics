@@ -1,15 +1,37 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 14.03.2023 01:27:10
+// Design Name: 
+// Module Name: JK_FlipFlop
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
 interface JK_TB (clk);
     input clk;
-    logic J, K, rst;
+    logic [1:0]J, K, sel; 
+    logic rst;
     logic Q;
 
-    modport JKFF_ports(input J, K, rst, clk, output Q);
+    modport JKFF_ports(input J, K, sel, rst, clk, output Q);
 
 
     parameter tsetup = 2, thold = 3;
     clocking TBForce @(posedge clk);
         default input #(tsetup) output #(thold);
-        output J, K, rst;
+        output J, K, sel, rst;
         input Q;
     endclocking: TBForce
 
@@ -27,23 +49,27 @@ interface JK_TB (clk);
     endtask: TestRst
 
     task TestValues;
-        input J, K;
+        input [1:0]J, K, sel;
+        logic j,k;
         reg PrevQ = TBForce.Q;
         TBForce.J <= J;
         TBForce.K <= K;
+        TBForce.sel <= sel;
         repeat (2) @(TBForce);
-        case ({J,K})
-            2'd0: if (TBForce.Q != PrevQ) Message(J, K, 1); else Message(J, K, 0);
-            2'd1: if (TBForce.Q != 0) Message(J, K, 1); else Message(J, K, 0);
-            2'd2: if (TBForce.Q != 1) Message(J, K, 1); else Message(J, K, 0);
-            2'd3: if (TBForce.Q == PrevQ) Message(J, K, 1); else Message(J, K, 0);
+        assign {j,k} = {sel[0]?(J[1]):(J[0]), sel[1]?(K[1]):(K[0])};
+        case ({j,k})
+            2'd0: if (TBForce.Q != PrevQ) Message(j, k, sel, 1); else Message(j, k, sel, 0);
+            2'd1: if (TBForce.Q != 0) Message(j, k, sel, 1); else Message(j, k, sel, 0);
+            2'd2: if (TBForce.Q != 1) Message(j, k, sel, 1); else Message(j, k, sel, 0);
+            2'd3: if (TBForce.Q == PrevQ) Message(j, k, sel, 1); else Message(j, k, sel, 0);
         endcase
     endtask: TestValues
 
-    task Message;
+    task Message; // write a better error message
         input J, K;
+        input [1:0]sel;
         input errcode;
-        $write("J = %b, K = %b is ", J, K);
+        $write("J[%d]=%b, K[%d]=%b is ", sel[0], J, sel[1], K);
         if(errcode)
             $display("Not working");
         else
@@ -54,12 +80,18 @@ interface JK_TB (clk);
 endinterface: JK_TB
 
 module JKFF(JK_TB.JKFF_ports JK_IF);
-    always_ff @(posedge JK_IF.clk)
+    logic j,k;
+    always_comb
+    begin
+        j = JK_IF.sel[0]?(JK_IF.J[1]):(JK_IF.J[0]);
+        k = JK_IF.sel[1]?(JK_IF.K[1]):(JK_IF.K[0]);
+    end
+    always_ff @(posedge JK_IF.clk or negedge JK_IF.rst)
     begin
         if (JK_IF.rst)
             JK_IF.Q <= 0;
         else
-            case({JK_IF.J, JK_IF.K})
+            case({j,k})
                 2'd0: JK_IF.Q <= JK_IF.Q;
                 2'd1: JK_IF.Q <= 1'b0;
                 2'd2: JK_IF.Q <= 1'b1;
@@ -73,9 +105,10 @@ module JKTestCases(JK_TB.TB_ports TB_IF);
     begin
         @(TB_IF.TBForce);
         TB_IF.TestRst;
-        for (int J=0; J<2; J++)
-            for (int K=0; K<2; K++)
-                TB_IF.TestValues(J, K);
+        for (int J=0; J<4; J++)
+            for (int K=0; K<4; K++)
+                for(int sel=0; sel<4; sel++)
+                    TB_IF.TestValues(J, K, sel);
     end
 endmodule: JKTestCases
 
