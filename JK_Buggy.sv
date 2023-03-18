@@ -45,9 +45,7 @@ interface JK_TB (clk);
         input errcode;
         $write("J = %b, K = %b is ", J, K);
         if(errcode)
-        begin
             $display("Not working");
-        end
         else
             $display("Working");
     endtask: Message
@@ -56,14 +54,12 @@ interface JK_TB (clk);
 endinterface: JK_TB
 
 module JKFF(JK_TB.JKFF_ports JK_IF);
-    logic J, K;
-    assign {J,K} = {JK_IF.J, JK_IF.K};
     always_ff @(posedge JK_IF.clk)
     begin
         if (JK_IF.rst)
             JK_IF.Q <= 0;
         else
-            case({J,K})
+            case({JK_IF.J, JK_IF.K})
                 2'd0: JK_IF.Q <= JK_IF.Q;
                 2'd1: JK_IF.Q <= 1'b0;
                 2'd2: JK_IF.Q <= 1'b1;
