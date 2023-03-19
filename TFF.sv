@@ -62,7 +62,7 @@ interface T_TB (clk);
             $display(" is not working");
         else
             $display(" is working");
-    endtask: Message
+    endtask: Checkif
 
     modport TB_ports(clocking TBForce, task TestRst, task TestValues);
 endinterface: T_TB
