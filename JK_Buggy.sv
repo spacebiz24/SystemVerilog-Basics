@@ -38,43 +38,37 @@ interface JK_TB (clk);
     task TestRst;
         TBForce.rst <= 1;
         repeat (2) @(TBForce);
-            if (TBForce.Q)
-            begin
-                $display("Reset is not working");
-                $stop;
-            end
-            else
-                $display("Reset is working");
+        $write("%t: Reset", $time); // How to represent the time in terms of ps or ns?
+        Checkif(TBForce.Q);
         TBForce.rst <= 0; 
     endtask: TestRst
 
     task TestValues;
         input [1:0]J, K, sel;
         logic j,k;
-        reg PrevQ = TBForce.Q;
+        static reg PrevQ = TBForce.Q;
         TBForce.J <= J;
         TBForce.K <= K;
         TBForce.sel <= sel;
-        repeat (2) @(TBForce);
         assign {j,k} = {sel[0]?(J[1]):(J[0]), sel[1]?(K[1]):(K[0])};
+        repeat (2) @(TBForce);
+        $write("%t: J = %b, sel[J] = %d, K = %b, sel[K] = %d --> PrevQ = %b, Q = %b", $time, J, sel[0], K, sel[1], PrevQ, TBForce.Q);
         case ({j,k})
-            2'd0: if (TBForce.Q != PrevQ) Message(j, k, sel, 1); else Message(j, k, sel, 0);
-            2'd1: if (TBForce.Q != 0) Message(j, k, sel, 1); else Message(j, k, sel, 0);
-            2'd2: if (TBForce.Q != 1) Message(j, k, sel, 1); else Message(j, k, sel, 0);
-            2'd3: if (TBForce.Q == PrevQ) Message(j, k, sel, 1); else Message(j, k, sel, 0);
+            2'd0: Checkif(TBForce.Q != PrevQ);
+            2'd1: Checkif(TBForce.Q != 0);
+            2'd2: Checkif(TBForce.Q != 1);
+            2'd3: Checkif(TBForce.Q == PrevQ);
+            default: $display("No Values forced");
         endcase
     endtask: TestValues
 
-    task Message; // write a better error message
-        input J, K;
-        input [1:0]sel;
-        input errcode;
-        $write("J[%d]=%b, K[%d]=%b is ", sel[0], J, sel[1], K);
-        if(errcode)
-            $display("Not working");
+    task Checkif;
+        input ErrCondition;
+        if(ErrCondition)
+            $display(" is Not working");
         else
-            $display("Working");
-    endtask: Message
+            $display(" is Working");
+    endtask: Checkif
 
     modport TB_ports(clocking TBForce, task TestRst, task TestValues);
 endinterface: JK_TB
