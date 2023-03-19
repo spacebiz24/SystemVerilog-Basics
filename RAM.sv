@@ -29,7 +29,7 @@ interface RAM_IF(clk);
     logic read, write;
 
     // Write BFM clocking block
-    clocking wr_cb @(posedge clk)
+    clocking wr_cb @(posedge clk);
         default input#1 output #1;
         output wr_address, data_in, write;
     endclocking: wr_cb
@@ -41,13 +41,13 @@ interface RAM_IF(clk);
     endclocking: rd_cb
 
     // Write monitor clocking block
-    clocking wr_mon_cb @(posedge clk)
+    clocking wr_mon_cb @(posedge clk);
         default input#1 output #1;
         input wr_address, data_in, write;
     endclocking: wr_mon_cb
 
     // Read monitor clocking block
-    clocking rd_mon_cb @(posedge clk)
+    clocking rd_mon_cb @(posedge clk);
         default input#1 output #1;
         input rd_address, data_out,read;
     endclocking: rd_mon_cb
