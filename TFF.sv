@@ -38,8 +38,8 @@ interface T_TB (clk);
     task TestRst;
         TBForce.rst <= 1;
         repeat (2) @(TBForce);
-        $write("%t: Reset is", $time);
-        Message(TBForce.Q);
+        $write("%t: Reset", $time);
+        Checkif(TBForce.Q);
         TBForce.rst <= 0; 
     endtask: TestRst
 
@@ -50,18 +50,18 @@ interface T_TB (clk);
         repeat (2) @(TBForce);
         $write("%1t: T = %b --> PrevQ = %b, Q = %b", $time, T, PrevQ, TBForce.Q); 
         case (T)
-            1'd0: Message(TBForce.Q != PrevQ);
-            1'd1: Message(TBForce.Q == PrevQ);
+            1'd0: Checkif(TBForce.Q != PrevQ);
+            1'd1: Checkif(TBForce.Q == PrevQ);
             default: $display("No Values forced");
         endcase
     endtask: TestValues
 
-    task Message;
+    task Checkif;
         input ErrCondition;
         if(ErrCondition)
-            $display(" Not working");
+            $display(" is not working");
         else
-            $display(" Working");
+            $display(" is working");
     endtask: Message
 
     modport TB_ports(clocking TBForce, task TestRst, task TestValues);
