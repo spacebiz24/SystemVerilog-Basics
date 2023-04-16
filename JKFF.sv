@@ -27,7 +27,6 @@ interface JK_TB (clk);
 
     modport JKFF_ports(input J, K, sel, rst, clk, output Q);
 
-
     parameter tsetup = 2, thold = 3;
     clocking TBForce @(posedge clk);
         default input #(tsetup) output #(thold);
