@@ -19,52 +19,21 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-interface D_TB (clk);
-    input clk;
+interface D_TB (input clk);
     logic [1:0]D;
     logic sel, rst;
     logic Q;
-
+    
     modport DFF_ports(input D, sel, rst, clk, output Q);
-
-
+    
     parameter tsetup = 2, thold = 3;
     clocking TBForce @(posedge clk);
         default input #(tsetup) output #(thold);
         output D, sel, rst;
         input Q;
     endclocking: TBForce
-
-    task TestRst;
-        TBForce.rst <= 1;
-        repeat (2) @(TBForce);
-        $write("%t: Reset", $time);
-        Checkif(TBForce.Q);
-        TBForce.rst <= 0; 
-    endtask: TestRst
-
-    task TestValues;
-        input [1:0]D;
-        input sel;
-        bit d;
-        static reg PrevQ = TBForce.Q;
-        TBForce.D <= D;
-        TBForce.sel <= sel;
-        assign d = sel?(D[1]):(D[0]);
-        repeat (2) @(TBForce);
-        $write("%t: D = %b, sel = %d --> PrevQ = %b, Q = %b", $time, D, sel, PrevQ, TBForce.Q);
-        Checkif(TBForce.Q != d);
-    endtask: TestValues
-
-    task Checkif;
-        input ErrCondition;
-        if(ErrCondition)
-            $display(" is not working");
-        else
-            $display(" is working");
-    endtask: Checkif
-
-    modport TB_ports(clocking TBForce, task TestRst, task TestValues);
+    
+    modport TB_ports(clocking TBForce);
 endinterface: D_TB
 
 module DFF(D_TB.DFF_ports D_IF);
@@ -80,21 +49,51 @@ module DFF(D_TB.DFF_ports D_IF);
     end
 endmodule: DFF
 
-module DTestCases(D_TB.TB_ports TB_IF);
+
+module test_bench(D_TB.TB_ports TB_IF);
     initial 
     begin
         @(TB_IF.TBForce);
-        TB_IF.TestRst;
+        TestRst;
         for (int D=0; D<4; D++)
             for (int sel=0;sel<2;sel++)
-                TB_IF.TestValues(D, sel);
+                TestValues(D, sel);
     end
-endmodule: DTestCases
+    
+    task TestRst;
+        TB_IF.TBForce.rst <= 1;
+        repeat (2) @(TB_IF.TBForce);
+        $write("%t: Reset", $time);
+        Checkif(TB_IF.TBForce.Q);
+        TB_IF.TBForce.rst <= 0; 
+    endtask: TestRst
+    
+    task TestValues;
+        input [1:0]D;
+        input sel;
+        bit d;
+        static reg PrevQ = TB_IF.TBForce.Q;
+        TB_IF.TBForce.D <= D;
+        TB_IF.TBForce.sel <= sel;
+        assign d = sel?(D[1]):(D[0]);
+        repeat (2) @(TB_IF.TBForce);
+        $write("%t: D = %b, sel = %d --> PrevQ = %b, Q = %b", $time, D, sel, PrevQ, TB_IF.TBForce.Q);
+        Checkif(TB_IF.TBForce.Q != d);
+    endtask: TestValues
+    
+    task Checkif;
+        input ErrCondition;
+        if(ErrCondition)
+            $display(" is not working");
+        else
+            $display(" is working");
+    endtask: Checkif
+endmodule
 
 module Top();
     bit clk;
     always #10 clk = ~clk;
     D_TB  bus (clk);
     DFF DUV (bus);
-    DTestCases TB (bus);
+    test_bench TB (bus);
 endmodule: Top
