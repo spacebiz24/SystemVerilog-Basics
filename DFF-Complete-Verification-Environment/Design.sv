@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+`timescale 1ns / 1ps // change to 10n
 
 module DFF(DUT_interface.DUT DFF_interface);
     logic D;
