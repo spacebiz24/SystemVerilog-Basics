@@ -13,7 +13,7 @@ class scoreboard;
             scoreboard_mailbox.get(pkt_from_monitor);
             
             $display("Scoreboard Received");
-            $display("%0t: D = %b, sel = %b, Q = %d, packets evaluated = %d", $time, pkt_from_monitor.D, pkt_from_monitor.sel, pkt_from_monitor.Q, packets_evaluated);
+            $display("%0t: D = %b, sel = %b, Q = %d, packet no. = %d", $time, pkt_from_monitor.D, pkt_from_monitor.sel, pkt_from_monitor.Q, packets_evaluated);
             
             if((pkt_from_monitor.rst == 1) & (pkt_from_monitor.Q != 0))
                 $display("Failed rst");
