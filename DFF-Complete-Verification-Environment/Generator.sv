@@ -17,7 +17,7 @@ class generator;
             generator_mailbox.put(pkt_to_driver);
             
             $display("Generator passed");
-            $display("%0t: D = %b, sel = %b, packet count = %d", $time, pkt_to_driver.D, pkt_to_driver.sel, packet_count);
+            $display("%0t: D = %b, sel = %b, packet no. = %d", $time, pkt_to_driver.D, pkt_to_driver.sel, packet_count);
             packet_count++;
         end
         -> generation_ended;
