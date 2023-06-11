@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+`timescale 1ns / 1ps // change to 10n
 
 interface DUT_interface(input clk);
     logic [1:0]D;
