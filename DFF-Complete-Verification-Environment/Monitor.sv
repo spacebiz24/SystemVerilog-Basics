@@ -23,7 +23,7 @@ class monitor;
             monitor_mailbox.put(pkt_to_scoreboard);
             
             $display("Monitor Received");
-            $display("%0t: D = %b, sel = %b, Q = %d, packets driven = %d", $time, pkt_to_scoreboard.D, pkt_to_scoreboard.sel, pkt_to_scoreboard.Q, signals_received);
+            $display("%0t: D = %b, sel = %b, Q = %d, signals received = %d", $time, pkt_to_scoreboard.D, pkt_to_scoreboard.sel, pkt_to_scoreboard.Q, signals_received);
             signals_received++;
         end
     endtask
