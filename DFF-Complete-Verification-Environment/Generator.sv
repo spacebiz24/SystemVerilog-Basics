@@ -6,7 +6,7 @@ class generator;
         generator_mailbox = glue_mailbox;
     endfunction
     
-    int total_packets, packet_count;
+    int total_packets, packet_count = 1;
     event generation_ended;
     
     task dispatch;
