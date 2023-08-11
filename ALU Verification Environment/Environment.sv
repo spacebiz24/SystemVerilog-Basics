@@ -1,8 +1,8 @@
-`include "packet.sv"
-`include "generator.sv"
-`include "driver.sv"
-`include "monitor.sv"
-`include "scoreboard.sv"
+`include "Packet.sv"
+`include "Generator.sv"
+`include "Driver.sv"
+`include "Monitor.sv"
+`include "Scoreboard.sv"
 
 class environment;
     generator gen;
