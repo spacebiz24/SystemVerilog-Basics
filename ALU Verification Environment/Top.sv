@@ -30,7 +30,7 @@ module TestBench_Top;
   	ALU DUT(.Operand1(intrf.Operand1), .Operand2(intrf.Operand2), .OpCode(intrf.OpCode), .Result(intrf.Result));
   initial
     begin
-      $dumpfile("dump.vcd");
+      $dumpfile("trace.vcd");
       $dumpvars;
     end
 endmodule
