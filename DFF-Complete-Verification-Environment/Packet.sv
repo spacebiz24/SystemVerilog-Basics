@@ -1,6 +1,6 @@
 class packet;
-    randc bit [1:0]D;
-    randc bit sel;
+    rand bit [1:0]D;
+    rand bit sel;
     bit rst;
     bit Q;
     
